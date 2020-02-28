@@ -1,9 +1,10 @@
 [package]
 name = "base24"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Julian Laubstein <contact@julianlaubstein.de>"]
 description = "A simple base24 implementation in Rust"
 license = "MIT"
 edition = "2018"
 
-[dependencies]
+[dev-dependencies]
+rand = "0.7.3"
