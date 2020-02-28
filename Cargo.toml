@@ -3,6 +3,7 @@ name = "base24"
 version = "0.2.0"
 authors = ["Julian Laubstein <contact@julianlaubstein.de>"]
 description = "A simple base24 implementation in Rust"
+repository = "https://github.com/sphinxc0re/base24"
 license = "MIT"
 edition = "2018"
 
