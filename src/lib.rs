@@ -75,12 +75,11 @@ impl Base24 {
             .chunks(7)
             .map(|chunks| {
                 chunks.iter().fold(0u32, |acc, kar| {
-                    if let Some(idx) = self.decode_map.get(kar) {
-                        ALPHABET_LENGTH as u32 * acc + *idx as u32
-                    } else {
-                        // We checked for invalid characters before, so panic here
-                        unreachable!();
-                    }
+                    let idx = self.decode_map.get(kar).unwrap_or_else(|| {
+                        unreachable!("We checked for invalid chars before. Something is wrong!")
+                    });
+
+                    (ALPHABET_LENGTH as u32) * acc + (*idx as u32)
                 })
             })
             .flat_map(|value| value.to_be_bytes().to_vec())
