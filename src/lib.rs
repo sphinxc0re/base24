@@ -37,7 +37,6 @@ impl Base24 {
             .chunks(4)
             .map(|chunk| u32::from_be_bytes([chunk[0], chunk[1], chunk[2], chunk[3]]))
             .map(|mut value| {
-                dbg!(value);
                 (0..7)
                     .into_iter()
                     .map(|_| {
