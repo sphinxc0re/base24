@@ -9,5 +9,3 @@ pub enum Base24Error {
     #[error("Unsupported character in input: {0:?}")]
     DecodeUnsupportedCharacter(char),
 }
-
-pub type Result<T> = std::result::Result<T, Base24Error>;

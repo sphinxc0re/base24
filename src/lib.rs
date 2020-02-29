@@ -1,7 +1,9 @@
 pub mod errors;
 
-use errors::{Base24Error, Result};
+use errors::Base24Error;
 use std::collections::BTreeMap;
+
+type Result<T> = std::result::Result<T, Base24Error>;
 
 const ALPHABET: &str = "ZAC2B3EF4GH5TK67P8RS9WXY";
 const ALPHABET_LENGTH: usize = ALPHABET.len();
