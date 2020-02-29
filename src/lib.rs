@@ -1,3 +1,6 @@
+pub mod errors;
+
+use errors::{Base24Error, Result};
 use std::collections::BTreeMap;
 
 const ALPHABET: &str = "ZAC2B3EF4GH5TK67P8RS9WXY";
@@ -25,13 +28,13 @@ impl Base24 {
         }
     }
 
-    pub fn encode(&self, data: &[u8]) -> String {
-        assert!(
-            data.len() % 4 == 0,
-            "Input data length must be a multiple of 4 bytes (32 bits)"
-        );
+    pub fn encode(&self, data: &[u8]) -> Result<String> {
+        if data.len() % 4 != 0 {
+            return Err(Base24Error::EncodeInputLengthInvalid);
+        }
 
-        data.chunks(4)
+        let res = data
+            .chunks(4)
             .map(|chunk| u32::from_be_bytes([chunk[0], chunk[1], chunk[2], chunk[3]]))
             .map(|mut value| {
                 dbg!(value);
@@ -48,38 +51,49 @@ impl Base24 {
                     .rev()
                     .collect::<String>()
             })
-            .collect()
+            .collect();
+
+        Ok(res)
     }
 
-    pub fn decode(&self, data: &str) -> Vec<u8> {
-        assert!(
-            data.len() % 7 == 0,
-            "Input data length must be a multiple of 7 chars"
-        );
+    pub fn decode(&self, data: &str) -> Result<Vec<u8>> {
+        if data.len() % 7 != 0 {
+            return Err(Base24Error::DecodeInputLengthInvalid);
+        }
 
         let char_vec: Vec<char> = data.chars().collect();
 
-        char_vec
+        // Pessimistically check whether the input contains any invalid characters
+        for kar in &char_vec {
+            if !self.decode_map.contains_key(kar) {
+                return Err(Base24Error::DecodeUnsupportedCharacter(kar.clone()));
+            }
+        }
+
+        let res = char_vec
             .chunks(7)
             .map(|chunks| {
                 chunks.iter().fold(0u32, |acc, kar| {
                     if let Some(idx) = self.decode_map.get(kar) {
                         ALPHABET_LENGTH as u32 * acc + *idx as u32
                     } else {
-                        panic!("Unsupported character in input: {:?}", kar);
+                        // We checked for invalid characters before, so panic here
+                        unreachable!();
                     }
                 })
             })
             .flat_map(|value| value.to_be_bytes().to_vec())
-            .collect()
+            .collect();
+
+        Ok(res)
     }
 }
 
-pub fn encode(data: &[u8]) -> String {
+pub fn encode(data: &[u8]) -> Result<String> {
     Base24::new().encode(data)
 }
 
-pub fn decode(data: &str) -> Vec<u8> {
+pub fn decode(data: &str) -> Result<Vec<u8>> {
     Base24::new().decode(data)
 }
 
@@ -165,9 +179,12 @@ mod tests {
         .collect();
 
         for (data, b24_str) in values {
-            let decoded = decode(&b24_str);
+            let decoded = decode(&b24_str).expect("error during test decode");
             assert_eq!(decoded, data);
-            assert_eq!(encode(&decoded), b24_str.to_uppercase());
+            assert_eq!(
+                encode(&decoded).expect("error during test encode"),
+                b24_str.to_uppercase()
+            );
         }
     }
 
@@ -179,8 +196,43 @@ mod tests {
         let rng = thread_rng();
 
         for _ in 0..100 {
-            let data: Vec<u8> = rng.sample_iter(Standard).take(64).collect();
-            assert_eq!(decode(&encode(&data)), data);
+            let original_data: Vec<u8> = rng.sample_iter(Standard).take(64).collect();
+
+            let encoded_data = encode(&original_data).expect("error during test encode");
+            let decoded_data = decode(&encoded_data).expect("error during test decode");
+
+            assert_eq!(decoded_data, original_data);
         }
+    }
+
+    #[test]
+    fn test_failures() {
+        let test_data: [u8; 5] = [1, 2, 3, 4, 5];
+
+        assert_eq!(
+            encode(&test_data),
+            Err(Base24Error::EncodeInputLengthInvalid)
+        );
+
+        let test_data: &str = "ZZZ";
+
+        assert_eq!(
+            decode(&test_data),
+            Err(Base24Error::DecodeInputLengthInvalid)
+        );
+
+        let test_data: &str = "ZZZZZZO";
+
+        assert_eq!(
+            decode(&test_data),
+            Err(Base24Error::DecodeUnsupportedCharacter('O'))
+        );
+
+        let test_data: &str = "ZZZ😋";
+
+        assert_eq!(
+            decode(&test_data),
+            Err(Base24Error::DecodeUnsupportedCharacter('😋'))
+        );
     }
 }

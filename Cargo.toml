@@ -9,3 +9,6 @@ edition = "2018"
 
 [dev-dependencies]
 rand = "0.7.3"
+
+[dependencies]
+thiserror = "1.0.11"
