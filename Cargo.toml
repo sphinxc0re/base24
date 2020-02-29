@@ -1,6 +1,6 @@
 [package]
 name = "base24"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["Julian Laubstein <contact@julianlaubstein.de>"]
 description = "A simple base24 implementation in Rust"
 repository = "https://github.com/sphinxc0re/rust-base24"
