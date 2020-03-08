@@ -58,11 +58,11 @@ impl Base24 {
     }
 
     pub fn decode(&self, data: &str) -> Result<Vec<u8>> {
-        if data.len() % 7 != 0 {
+        let char_vec: Vec<char> = data.chars().collect();
+
+        if char_vec.len() % 7 != 0 {
             return Err(Base24Error::DecodeInputLengthInvalid);
         }
-
-        let char_vec: Vec<char> = data.chars().collect();
 
         // Pessimistically check whether the input contains any invalid characters
         for kar in &char_vec {
@@ -228,11 +228,11 @@ mod tests {
             Err(Base24Error::DecodeUnsupportedCharacter('O'))
         );
 
-        let test_data: &str = "ZZZ😋";
+        let test_data: &str = "ABC😘EFG";
 
         assert_eq!(
             decode(&test_data),
-            Err(Base24Error::DecodeUnsupportedCharacter('😋'))
+            Err(Base24Error::DecodeUnsupportedCharacter('😘'))
         );
     }
 }
